@@ -22,12 +22,20 @@ app.get('/', (req, res) => {
 
 
 const uri = `mongodb+srv://Bandhon_Ecommerce:Noor&62427@cluster0.zcphb.mongodb.net/badhon_ecommerce?retryWrites=true&w=majority`
-const client = new MongoClient(uri, { useUnifiedTopology: true })
+const client = new MongoClient(uri, { useUnifiedTopology: true, useNewUrlParser: true })
 
 
 
 client.connect(error => {
     const categoryCollection = client.db("bandhon_ecommerce").collection("categories")
+
+    app.get('/get', (req, res) => {
+        categoryCollection.find({})
+        .toArray((err, docs) => {
+            res.send(docs)
+            console.log(err)
+        })
+    })
 
     app.get('/get-categories', (req, res) => {
         categoryCollection.find({})
