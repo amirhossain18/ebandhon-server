@@ -33,6 +33,7 @@ client.connect(error => {
         categoryCollection.find({})
         .toArray((err, docs) => {
             res.send(docs)
+            console.log(err)
         })
     })
 
