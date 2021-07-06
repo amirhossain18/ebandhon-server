@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 })
 
 
-const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASS}@cluster0.zcphb.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
+const uri = `mongodb+srv://Bandhon_Ecommerce:Noor&62427@cluster0.zcphb.mongodb.net/badhon_ecommerce?retryWrites=true&w=majority`
 const client = new MongoClient(uri, { useUnifiedTopology: true })
 
 
