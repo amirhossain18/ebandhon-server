@@ -46,6 +46,7 @@ client.connect(error => {
             }
         )
         .then(result =>  res.send(result))
+        .catch(err => console.log(err))
     })
 
     app.patch('/add-product/id',(req, res)=>{
@@ -59,6 +60,7 @@ client.connect(error => {
             }
         )
         .then(result =>  res.send(result))
+        .catch(err => console.log(err))
     })
 })
 
