@@ -73,4 +73,39 @@ client.connect(error => {
     })
 })
 
+client.connect(error => {
+    const userDataCollection = client.db("bandhon_ecommerce").collection("user_data")
+
+    app.get('/get-user-data', (req, res) => {
+        userDataCollection.find({})
+        .toArray((err, docs) => {
+            res.send(docs)
+            console.log(err)
+        })
+    })
+
+    app.post('/add-user-data', (req, res) => {
+        const data = req.body
+        userDataCollection.insertOne(data)
+        .then(result => {
+          res.send(result)
+        })
+        .catch(err => console.log(err))
+    })
+
+    app.patch('/add-cart-product/id',(req, res)=>{
+        const id = req.query.id;
+        const body = req.body;
+        console.log(body, id)
+        userDataCollection.updateOne(
+            { _id: ObjectId(id) },
+            {
+            $set: {cartProducts: body},
+            }
+        )
+        .then(result =>  res.send(result))
+        .catch(err => res.send(err))
+    })
+})
+
 app.listen(process.env.PORT || 5000)
