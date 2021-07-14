@@ -108,4 +108,25 @@ client.connect(error => {
     })
 })
 
+client.connect(error => {
+    const luckyWinnerCollection = client.db("bandhon_ecommerce").collection("lucky_winner_data")
+
+    app.get('/get-lucky-winner-data', (req, res) => {
+        luckyWinnerCollection.find({})
+        .toArray((err, docs) => {
+            res.send(docs)
+            console.log(err)
+        })
+    })
+
+    app.post('/add-lucky-winner-data', (req, res) => {
+        const data = req.body
+        luckyWinnerCollection.insertOne(data)
+        .then(result => {
+          res.send(result)
+        })
+        .catch(err => console.log(err))
+    })
+})
+
 app.listen(process.env.PORT || 5000)
