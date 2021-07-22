@@ -129,4 +129,16 @@ client.connect(error => {
     })
 })
 
+client.connect(error => {
+    const adminDataCollection = client.db("bandhon_ecommerce").collection("admin_mail")
+
+    app.get('/get-admin-mail', (req, res) => {
+        adminDataCollection.find({})
+        .toArray((err, docs) => {
+            res.send(docs)
+            console.log(err)
+        })
+    })
+})
+
 app.listen(process.env.PORT || 5000)
