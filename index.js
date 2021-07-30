@@ -3,6 +3,7 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const fileUpload = require('express-fileupload')
 const { MongoClient } = require('mongodb');
+const axios = require('axios');
 const ObjectId = require('mongodb').ObjectID
 require('dotenv').config();
 
@@ -93,7 +94,7 @@ client.connect(error => {
         .catch(err => console.log(err))
     })
 
-    app.patch('/add-cart-product/id',(req, res)=>{
+    app.patch('/add-cart-product/id', (req, res)=>{
         const id = req.query.id;
         const body = req.body;
         console.log(body, id)
@@ -105,6 +106,34 @@ client.connect(error => {
         )
         .then(result =>  res.send(result))
         .catch(err => res.send(err))
+    })
+
+    // calling sManager payment gateway api
+    app.post('/call-payment-gateway', (req, res) => {
+        const client_id = '664520543'
+        const client_secret = 'E2BC3ADUArXkyjpJJe6nWcBhDbLwBbY5EVQ1yfdwAXPafUnAZcysJm0zQ98Y4TQriiKcZQvQgRsZxlAaDeLZCK5msWzwLRWB4aPHNN1ZTH4qYuJoebSZnZdn'
+        var data = req.body;
+
+        var config = {
+        method: 'post',
+        url: 'https://api.dev-sheba.xyz/v1/ecom-payment/initiate',
+        headers: { 
+            'client-id': client_id, 
+            'client-secret': client_secret,
+            'Accept': 'application/json', 
+            'Content-Type': 'application/json'
+        },
+            data : data
+        };
+
+        axios(config)
+        .then(function (response) {
+            res.send(response.data);
+        })
+        .catch(function (error) {
+            res.send(error);
+        });
+
     })
 })
 
@@ -126,6 +155,31 @@ client.connect(error => {
           res.send(result)
         })
         .catch(err => console.log(err))
+    })
+})
+
+client.connect(error => {
+    const campaignCollection = client.db("bandhon_ecommerce").collection("campaign")
+
+    app.get('/get-campaign-data', (req, res) => {
+        campaignCollection.find({})
+        .toArray((err, docs) => {
+            res.send(docs)
+            console.log(err)
+        })
+    })
+
+    app.patch('/add-campaign-product/id', (req, res)=>{
+        const id = req.query.id;
+        const body = req.body;
+        campaignCollection.updateOne(
+            { _id: ObjectId(id) },
+            {
+            $set: {products: body},
+            }
+        )
+        .then(result =>  res.send(result))
+        .catch(err => res.send(err))
     })
 })
 
