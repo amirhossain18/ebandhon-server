@@ -10,11 +10,15 @@ require('dotenv').config();
 
 const app = express()
 app.use(express.static('categories'))
-app.use(cors())
+// app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(fileUpload({
     createParentPath: true
+  }));
+//   const cors = require('cors');
+  app.use(cors({
+      origin: '*'
   }));
 
 const imagekit = new ImageKit({
