@@ -18,7 +18,7 @@ app.use(fileUpload({
   }));
 //   const cors = require('cors');
   app.use(cors({
-      origin: 'https://ebandhon.com/'
+      origin: 'https://ebandhon.com'
   }));
 
 const imagekit = new ImageKit({
