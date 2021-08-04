@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const fileUpload = require('express-fileupload')
 const { MongoClient } = require('mongodb');
 const axios = require('axios');
+const ImageKit = require('imagekit');
 const ObjectId = require('mongodb').ObjectID
 require('dotenv').config();
 
@@ -16,10 +17,20 @@ app.use(fileUpload({
     createParentPath: true
   }));
 
+const imagekit = new ImageKit({
+    urlEndpoint: 'https://ik.imagekit.io/ebnirpt9i8agxu',
+    publicKey: 'public_5rRmOCN1vK/MI28l98iNzt8jNhQ=',
+    privateKey: 'private_zhGSwTmOLTaSGUBkrvsduQ1ln1s='
+});
 
 app.get('/', (req, res) => {
     res.send('everything is ok here')
 })
+
+app.get('/auth', function (req, res) {
+    var result = imagekit.getAuthenticationParameters();
+    res.send(result);
+});
 
 
 const uri = `mongodb+srv://Bandhon_Ecommerce:Noor&62427@cluster0.zcphb.mongodb.net/badhon_ecommerce?retryWrites=true&w=majority`
@@ -74,12 +85,40 @@ client.connect(error => {
     })
 
     const userDataCollection = client.db("bandhon_ecommerce").collection("user_data")
+    const adminDataCollection = client.db("bandhon_ecommerce").collection("admin_mail")
 
-    app.get('/get-user-data', (req, res) => {
+    // app.get('/get-admin-mail', (req, res) => {
+    //     adminDataCollection.find({})
+    //     .toArray((err, docs) => {
+    //         res.send(docs)
+    //         console.log(err)
+    //     })
+    // })
+
+    app.get('/get-user-data/id', (req, res) => {
+        const id = req.query.id;
         userDataCollection.find({})
         .toArray((err, docs) => {
-            res.send(docs)
-            console.log(err)
+            // var adminData = []
+            var userData = docs.find(user => user.uid === id)
+            adminDataCollection.find({})
+            .toArray((err, docs) => {
+                if(userData.email){
+                    var admin = docs.find(data => data.email === userData.email)
+                    // console.log(adminData)
+                    if(admin){
+                        userData.admin = true
+                        res.send(userData)
+                    }
+                    else{
+                        res.send(userData)
+                    }
+                }
+                else{
+                    res.send(userData)
+                }
+            })
+            
         })
     })
 
@@ -146,16 +185,6 @@ client.connect(error => {
         )
         .then(result =>  res.send(result))
         .catch(err => res.send(err))
-    })
-
-    const adminDataCollection = client.db("bandhon_ecommerce").collection("admin_mail")
-
-    app.get('/get-admin-mail', (req, res) => {
-        adminDataCollection.find({})
-        .toArray((err, docs) => {
-            res.send(docs)
-            console.log(err)
-        })
     })
 
     const campaignDataCollection = client.db("bandhon_ecommerce").collection("campaign_data")
