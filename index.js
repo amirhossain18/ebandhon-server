@@ -125,7 +125,7 @@ client.connect(error => {
                 })
             }
             else{
-                res.send("no data found")
+                res.send({error: 'no data found'})
             }
             
         })
@@ -133,16 +133,21 @@ client.connect(error => {
 
     app.post('/add-user-data', (req, res) => {
         const data = req.body
+        // console.log(data, 'data')
         userDataCollection.insertOne(data)
         .then(result => {
+            // console.log(result, 'result')
             userDataCollection.find({})
             .toArray((err, docs) => {
+                // console.log(docs, 'docs')
                 var userData = docs.find(data => data.uid === data.uid)
                 if(userData) {
                     res.send(userData)
+                    // console.log(userData, 'if')
                 }
                 else{
                     res.send(result)
+                    // console.log(data, 'else')
                 }
             })
         })
