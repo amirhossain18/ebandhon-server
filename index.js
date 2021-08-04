@@ -105,23 +105,28 @@ client.connect(error => {
         .toArray((err, docs) => {
             // var adminData = []
             var userData = docs.find(user => user.uid === id)
-            adminDataCollection.find({})
-            .toArray((err, docs) => {
-                if(userData.email){
-                    var admin = docs.find(data => data.email === userData.email)
-                    // console.log(adminData)
-                    if(admin){
-                        userData.admin = true
-                        res.send(userData)
+            if(userData){
+                adminDataCollection.find({})
+                .toArray((err, docs) => {
+                    if(userData.email){
+                        var admin = docs.find(data => data.email === userData.email)
+                        // console.log(adminData)
+                        if(admin){
+                            userData.admin = true
+                            res.send(userData)
+                        }
+                        else{
+                            res.send(userData)
+                        }
                     }
                     else{
                         res.send(userData)
                     }
-                }
-                else{
-                    res.send(userData)
-                }
-            })
+                })
+            }
+            else{
+                res.send("no data found")
+            }
             
         })
     })
