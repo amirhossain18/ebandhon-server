@@ -135,7 +135,16 @@ client.connect(error => {
         const data = req.body
         userDataCollection.insertOne(data)
         .then(result => {
-          res.send(result)
+            userDataCollection.find({})
+            .toArray((err, docs) => {
+                var userData = docs.find(data => data.uid === data.uid)
+                if(userData) {
+                    res.send(userData)
+                }
+                else{
+                    res.send(result)
+                }
+            })
         })
         .catch(err => console.log(err))
     })
