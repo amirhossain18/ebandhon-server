@@ -197,6 +197,54 @@ client.connect(error => {
         .catch(err => res.send(err))
     })
 
+    // register new user 
+    app.post('/register-new-user', (req, res) => {
+        const data = req.body;
+        userDataCollection.find({})
+        .toArray((err, docs) => {
+            var alreadyRegistered = docs.find(doc => doc.email === data.email)
+            if(alreadyRegistered) {
+                res.send({error: 'This email is already registered.'})
+            }
+            else {
+                userDataCollection.insertOne(data)
+                .then(result => {
+                    res.send(result.ops)
+                })
+                .catch(err => res.send({error: err.message}))
+            }
+        })
+    })
+
+    // email pass login 
+    app.post('/email-pass-login', (req, res) => {
+        const data = req.body
+        userDataCollection.find({})
+        .toArray((err, docs) => {
+            var selectedUser = docs.find(user => user.email === data.email)
+            if(selectedUser) {
+                if(selectedUser.password) {
+                    if(selectedUser.password === data.password) {
+                        var newData = selectedUser
+                        delete newData.password
+                        delete newData._id
+                        newData.isSignedIn = true
+                        res.send({status: 'success', data: newData});
+                    }
+                    else {
+                        res.send({error: 'Password did not match.'})
+                    }
+                }
+                else {
+                    res.send({error: 'There is no account with this method.'})
+                }
+            }
+            else {
+                res.send({error: 'No user found with this email.'})
+            }
+        })
+    })
+
     const campaignDataCollection = client.db("bandhon_ecommerce").collection("campaign_data")
 
     // calling sManager payment gateway api
@@ -225,6 +273,9 @@ client.connect(error => {
             res.send(error);
         });
     })
+
+    // to add the data in campaign sale pending database
+    const campaignSalePendingCollection = client.db("bandhon_ecommerce").collection("campaign_sale_pending")
 
     // getting payment details from sManager
     app.post('/add-payment-details', (req, res) => {
@@ -262,16 +313,17 @@ client.connect(error => {
     app.post('/add-campaign-payment-details', (req, res) => {
         var campaignPaymentData = req.body;
 
-        const client_id = '721182060'
-        const client_secret = 'p3PO1ZmZWMM4msFBEubuwD2lTSQvXdu8zDIh2jJLfqjz9zTXJotl86JO6wHRck5zO6edx1KdML2XQkfu57r1a2s84jPIfdJYglebLnPWDFacDt9e4K1tHozd'
+        const client_id = '664520543'
+        const client_secret = 'E2BC3ADUArXkyjpJJe6nWcBhDbLwBbY5EVQ1yfdwAXPafUnAZcysJm0zQ98Y4TQriiKcZQvQgRsZxlAaDeLZCK5msWzwLRWB4aPHNN1ZTH4qYuJoebSZnZdn'
         var axios = require('axios');
         var data = JSON.stringify({
-        "transaction_id": campaignPaymentData.transactionId
+        // "transaction_id": campaignPaymentData.transactionId
+        "transaction_id": '63fef5a2c65bf7a7a0c40c16be200bb'
         });
 
         var config = {
         method: 'get',
-        url: 'https://api.sheba.xyz/v1/ecom-payment/details',
+        url: 'https://api.dev-sheba.xyz/v1/ecom-payment/details',
         headers: { 
             'Accept': 'application/json', 
             'client-id': client_id, 
@@ -283,71 +335,102 @@ client.connect(error => {
 
         axios(config)
         .then(function (response) {
-            campaignDataCollection.find({})
-            .toArray((err, docs) => {
-                var CPCategoryData = docs.find(category => category.name === campaignPaymentData.productDetails.productCategory)
-                var addNewData = {...campaignPaymentData}
-                if(CPCategoryData.data){
-                    addNewData.code = parseInt(CPCategoryData.data[CPCategoryData.data.length - 1].code) + 1
-                    campaignDataCollection.updateOne(
-                        { _id: ObjectId(CPCategoryData._id) },
-                        {
-                        $set: {data: [...CPCategoryData.data, addNewData]},
-                        }
-                    )
-                    .then(result => {
-                        userDataCollection.find({})
-                        .toArray((err, docs) => {
-                            const userData = docs.find(user => user._id == campaignPaymentData.userId)
-                            if(userData.campaignProducts) {
-                                userDataCollection.updateOne(
-                                    { _id: ObjectId(userData._id) },
-                                    {
-                                    $set: {campaignProducts: [...userData.campaignProducts, addNewData]},
-                                    }
-                                )
-                                .then(result =>  res.send(result))
-                                .catch(err => res.send(err));
-                            }
-                            else {
-                                userDataCollection.updateOne(
-                                    { _id: ObjectId(userData._id) },
-                                    {
-                                    $set: {campaignProducts: [addNewData]},
-                                    }
-                                )
-                                .then(result =>  res.send(result))
-                                .catch(err => res.send(err));
-                            }
-                        })
-                    })
-                    .catch(err => res.send(err))
-                }
-                else{
-                    addNewData.code = 2021
-                    campaignDataCollection.updateOne(
-                        { _id: ObjectId(CPCategoryData._id) },
-                        {
-                        $set: {data: [addNewData]},
-                        }
-                    )
-                    .then(result => {
-                        userDataCollection.find({})
-                        .toArray((err, docs) => {
-                            const userData = docs.find(user => user._id == campaignPaymentData.userId)
-                            userDataCollection.updateOne(
-                                { _id: ObjectId(userData._id) },
+            if(response.data.message === "Successful"){
+                if(response.data.data.payment_status != "pending"){
+                    campaignDataCollection.find({})
+                    .toArray((err, docs) => {
+                        var CPCategoryData = docs.find(category => category.name === campaignPaymentData.productDetails.productCategory)
+                        var addNewData = {...campaignPaymentData}
+                        if(CPCategoryData.data){
+                            addNewData.code = parseInt(CPCategoryData.data[CPCategoryData.data.length - 1].code) + 1
+                            campaignDataCollection.updateOne(
+                                { _id: ObjectId(CPCategoryData._id) },
                                 {
-                                $set: {campaignProducts: [addNewData]},
+                                $set: {data: [...CPCategoryData.data, addNewData]},
                                 }
                             )
-                            .then(result =>  res.send(result))
-                            .catch(err => res.send(err));
-                        })
+                            .then(result => {
+                                userDataCollection.find({})
+                                .toArray((err, docs) => {
+                                    const userData = docs.find(user => user._id == campaignPaymentData.userId)
+                                    if(userData.campaignProducts) {
+                                        addNewData.status = "pending"
+                                        userDataCollection.updateOne(
+                                            { _id: ObjectId(userData._id) },
+                                            {
+                                            $set: {campaignProducts: [...userData.campaignProducts, addNewData]},
+                                            }
+                                        )
+                                        .then(result => {
+                                            campaignSalePendingCollection.insertOne(addNewData)
+                                            .then(result => {
+                                                res.send(result)
+                                            })
+                                            .catch(err => res.send(err))
+                                        })
+                                        .catch(err => res.send(err));
+                                    }
+                                    else {
+                                        addNewData.status = "pending"
+                                        userDataCollection.updateOne(
+                                            { _id: ObjectId(userData._id) },
+                                            {
+                                            $set: {campaignProducts: [addNewData]},
+                                            }
+                                        )
+                                        .then(result => {
+                                            campaignSalePendingCollection.insertOne(addNewData)
+                                            .then(result => {
+                                                res.send(result)
+                                            })
+                                            .catch(err => res.send(err))
+                                        })
+                                        .catch(err => res.send(err));
+                                    }
+                                })
+                            })
+                            .catch(err => res.send(err))
+                        }
+                        else{
+                            addNewData.code = 2021
+                            campaignDataCollection.updateOne(
+                                { _id: ObjectId(CPCategoryData._id) },
+                                {
+                                $set: {data: [addNewData]},
+                                }
+                            )
+                            .then(result => {
+                                userDataCollection.find({})
+                                .toArray((err, docs) => {
+                                    const userData = docs.find(user => user._id == campaignPaymentData.userId)
+                                    addNewData.status = "pending"
+                                    userDataCollection.updateOne(
+                                        { _id: ObjectId(userData._id) },
+                                        {
+                                        $set: {campaignProducts: [addNewData]},
+                                        }
+                                    )
+                                    .then(result => {
+                                        campaignSalePendingCollection.insertOne(addNewData)
+                                        .then(result => {
+                                            res.send(result)
+                                        })
+                                        .catch(err => res.send(err))
+                                    })
+                                    .catch(err => res.send(err));
+                                })
+                            })
+                            .catch(err => res.send(err))
+                        }
                     })
-                    .catch(err => res.send(err))
                 }
-            })
+                else{
+                    res.send({error: 'Something went wrong.'});
+                }
+            }
+            else{
+                res.send({error: "Something went wrong."})
+            }
         })
         .catch(function (error) {
             console.log(error);
