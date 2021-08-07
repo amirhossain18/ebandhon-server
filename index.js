@@ -281,8 +281,8 @@ client.connect(error => {
     app.post('/add-payment-details', (req, res) => {
         var paymentData = req.body;
 
-        const client_id = '664520543'
-        const client_secret = 'E2BC3ADUArXkyjpJJe6nWcBhDbLwBbY5EVQ1yfdwAXPafUnAZcysJm0zQ98Y4TQriiKcZQvQgRsZxlAaDeLZCK5msWzwLRWB4aPHNN1ZTH4qYuJoebSZnZdn'
+        const client_id = '721182060'
+        const client_secret = 'p3PO1ZmZWMM4msFBEubuwD2lTSQvXdu8zDIh2jJLfqjz9zTXJotl86JO6wHRck5zO6edx1KdML2XQkfu57r1a2s84jPIfdJYglebLnPWDFacDt9e4K1tHozd'
         var axios = require('axios');
         var data = JSON.stringify({
         "transaction_id": paymentData.transactionId
@@ -290,7 +290,7 @@ client.connect(error => {
 
         var config = {
         method: 'get',
-        url: 'https://api.dev-sheba.xyz/v1/ecom-payment/details',
+        url: 'https://api.sheba.xyz/v1/ecom-payment/details',
         headers: { 
             'Accept': 'application/json', 
             'client-id': client_id, 
@@ -313,17 +313,16 @@ client.connect(error => {
     app.post('/add-campaign-payment-details', (req, res) => {
         var campaignPaymentData = req.body;
 
-        const client_id = '664520543'
-        const client_secret = 'E2BC3ADUArXkyjpJJe6nWcBhDbLwBbY5EVQ1yfdwAXPafUnAZcysJm0zQ98Y4TQriiKcZQvQgRsZxlAaDeLZCK5msWzwLRWB4aPHNN1ZTH4qYuJoebSZnZdn'
+        const client_id = '721182060'
+        const client_secret = 'p3PO1ZmZWMM4msFBEubuwD2lTSQvXdu8zDIh2jJLfqjz9zTXJotl86JO6wHRck5zO6edx1KdML2XQkfu57r1a2s84jPIfdJYglebLnPWDFacDt9e4K1tHozd'
         var axios = require('axios');
         var data = JSON.stringify({
-        // "transaction_id": campaignPaymentData.transactionId
-        "transaction_id": '63fef5a2c65bf7a7a0c40c16be200bb'
+        "transaction_id": campaignPaymentData.transactionId
         });
 
         var config = {
         method: 'get',
-        url: 'https://api.dev-sheba.xyz/v1/ecom-payment/details',
+        url: 'https://api.sheba.xyz/v1/ecom-payment/details',
         headers: { 
             'Accept': 'application/json', 
             'client-id': client_id, 
