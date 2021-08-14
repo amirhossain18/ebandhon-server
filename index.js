@@ -43,22 +43,21 @@ const client = new MongoClient(uri, { useUnifiedTopology: true, useNewUrlParser:
 
 
 client.connect(error => {
-    console.log(error)
+    // console.log(error)
     const categoryCollection = client.db("bandhon_ecommerce").collection("categories")
 
-    app.get('/get', (req, res) => {
-        categoryCollection.find({})
-        .toArray((err, docs) => {
-            res.send([{message: error}])
-            console.log(err)
-        })
-    })
+    // app.get('/get', (req, res) => {
+    //     categoryCollection.find({})
+    //     .toArray((err, docs) => {
+    //         res.send([{message: error}])
+    //         console.log(err)
+    //     })
+    // })
 
     app.get('/get-categories', (req, res) => {
         categoryCollection.find({})
         .toArray((err, docs) => {
-            res.send(JSON.stringify([{message: 'get-categories'}]))
-            console.log(err)
+            res.send(docs)
         })
     })
 
