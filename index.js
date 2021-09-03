@@ -276,37 +276,53 @@ client.connect(error => {
 
     // to add the data in campaign sale pending database
     const campaignSalePendingCollection = client.db("bandhon_ecommerce").collection("campaign_sale_pending")
+    const salePendingCollection = client.db("bandhon_ecommerce").collection("product_sale")
 
     // getting payment details from sManager
     app.post('/add-payment-details', (req, res) => {
         var paymentData = req.body;
+        paymentData.status = 'pending'
 
-        const client_id = '721182060'
-        const client_secret = 'p3PO1ZmZWMM4msFBEubuwD2lTSQvXdu8zDIh2jJLfqjz9zTXJotl86JO6wHRck5zO6edx1KdML2XQkfu57r1a2s84jPIfdJYglebLnPWDFacDt9e4K1tHozd'
-        var axios = require('axios');
-        var data = JSON.stringify({
-        "transaction_id": paymentData.transactionId
-        });
-
-        var config = {
-        method: 'get',
-        url: 'https://api.sheba.xyz/v1/ecom-payment/details',
-        headers: { 
-            'Accept': 'application/json', 
-            'client-id': client_id, 
-            'client-secret': client_secret,
-            'Content-Type': 'application/json'
-        },
-            data : data
-        };
-
-        axios(config)
-        .then(function (response) {
-            console.log(response.data);
+        salePendingCollection.insertOne(paymentData)
+        .then(result => {
+            console.log(result, "inserted result")
+            if(result.insertedCount !== 0) {
+                userDataCollection.find({})
+                .toArray((err, docs) => {
+                    var selectedUser = docs.find(user => user.uid === paymentData.uid);
+                    if(selectedUser.productBought){
+                        selectedUser.productBought = [...selectedUser.productBought, paymentData]
+                        userDataCollection.updateOne(
+                            { _id: ObjectId(selectedUser._id) },
+                            {
+                                $set: {productBought: selectedUser.productBought}
+                            }
+                        )
+                        .then(result => {
+                            res.send(result)
+                        })
+                        .catch(error => console.error(error))
+                    }
+                    else{
+                        selectedUser.productBought = [paymentData]
+                        userDataCollection.updateOne(
+                            { _id: ObjectId(selectedUser._id) },
+                            {
+                                $set: {productBought: selectedUser.productBought}
+                            }
+                        )
+                        .then(result => {
+                            res.send(result)
+                        })
+                        .catch(error => console.error(error))
+                    }
+                })
+            }
+            else{
+                res.send({error: 'Can not insert data please reload the page.'})
+            }
         })
-        .catch(function (error) {
-            console.log(error);
-        });
+        .catch(err => console.log(err));
     })
 
     // getting campaign payment details from sManager
