@@ -277,6 +277,7 @@ client.connect(error => {
     // to add the data in campaign sale pending database
     const campaignSalePendingCollection = client.db("bandhon_ecommerce").collection("campaign_sale_pending")
     const salePendingCollection = client.db("bandhon_ecommerce").collection("product_sale")
+    const hotDealDataCollection = client.db("bandhon_ecommerce").collection("hot_deal_data")
 
     // getting payment details from sManager
     app.post('/add-payment-details', (req, res) => {
@@ -433,6 +434,17 @@ client.connect(error => {
                 .catch(err => res.send(err))
             }
         })
+    })
+
+
+    // adding data in hot deal data collection
+    app.post('/add-hot-deal-data', (req, res) => {
+        var data = req.body
+        hotDealDataCollection.insertOne(data)
+        .then(result => {
+            res.send(result)
+        })
+        .catch(err => res.send(err))
     })
 
 })
