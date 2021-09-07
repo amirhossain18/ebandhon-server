@@ -447,6 +447,14 @@ client.connect(error => {
         .catch(err => res.send(err))
     })
 
+    // getting all hot deal data
+    app.get('/get-all-hot-deal-data', (req, res) => {
+        hotDealDataCollection.find({})
+        .toArray((err, docs) => {
+            res.send(docs)
+        })
+    })
+
 })
 
 app.listen(process.env.PORT || 5000)
