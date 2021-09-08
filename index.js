@@ -175,6 +175,7 @@ client.connect(error => {
     })
 
     const campaignCollection = client.db("bandhon_ecommerce").collection("campaign")
+    const hotDealSalePendingCollection = client.db("bandhon_ecommerce").collection("hot_deal_sale_pending")
 
     app.get('/get-campaign-data', (req, res) => {
         campaignCollection.find({})
@@ -432,6 +433,67 @@ client.connect(error => {
                     })
                 })
                 .catch(err => res.send(err))
+            }
+        })
+    })
+
+    // getting hot-deal payment details from sManager
+    app.post('/add-hot-deal-payment-details', (req, res) => {
+        var hotDealPaymentData = req.body;
+        console.log(hotDealPaymentData)
+        var newPaymentData = {...hotDealPaymentData}
+
+        // checking saleId
+        hotDealSalePendingCollection.find({})
+        .toArray((err, docs) => {
+            if(docs.length > 0) {
+                newPaymentData.SLID = docs[docs.length - 1].SLID + 1
+            }
+            else {
+                newPaymentData.SLID = 3001
+            }
+        })
+
+        userDataCollection.find({})
+        .toArray((err, data) => {
+            var selectedUser = data.find(user => user._id == newPaymentData.userId)
+            if(selectedUser){
+                hotDealSalePendingCollection.insertOne(newPaymentData)
+                .then(result => {
+                    if(result.insertedCount === 1){
+                        if(selectedUser.hotDealData){
+                            userDataCollection.updateOne(
+                                { _id: ObjectId(newPaymentData.userId) },
+                                {
+                                $set: {hotDealData: [...selectedUser.hotDealData, newPaymentData]},
+                                }
+                            )
+                            .then(result => {
+                                res.send(result)
+                            })
+                            .catch(err => res.send({error: err}));
+                        }
+                        else{
+                            userDataCollection.updateOne(
+                                { _id: ObjectId(newPaymentData.userId) },
+                                {
+                                $set: {hotDealData: [newPaymentData]},
+                                }
+                            )
+                            .then(result => {
+                                res.send(result)
+                            })
+                            .catch(err => res.send({error: err}));
+                        }
+                    }
+                    else{
+                        res.send({error: 'Something went wrong saving your data. Please refresh the page to fix the issue.'})
+                    }
+                })
+                .catch(err => res.send({error: err}))
+            }
+            else{
+                res.send({error: 'Something went wrong finding the user. Please refresh the page.'})
             }
         })
     })
