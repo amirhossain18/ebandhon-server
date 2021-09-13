@@ -517,6 +517,46 @@ client.connect(error => {
         })
     })
 
+    // adding hot-deal cash-on-delivery data
+    app.post('/hot-deal-cash-on-delivery', (req, res) => {
+        var data = req.body
+        // console.log('data', data)
+        userDataCollection.find({})
+        .toArray((err, docs) => {
+            var selectedUser = docs.find(user => user._id == data.userId)
+            if(selectedUser){
+                hotDealSalePendingCollection.insertOne(data)
+                .then(result => {
+                    if(selectedUser.hotDealData) {
+                        userDataCollection.updateOne(
+                            { _id: ObjectId(data.userId) },
+                            {
+                            $set: {hotDealData: [...selectedUser.hotDealData, data]},
+                            }
+                        )
+                        .then(result => {
+                            res.send(result)
+                        })
+                        .catch(err => res.send({error: err}));
+                    }
+                    else{
+                        userDataCollection.updateOne(
+                            { _id: ObjectId(data.userId) },
+                            {
+                            $set: {hotDealData: [data]},
+                            }
+                        )
+                        .then(result => {
+                            res.send(result)
+                        })
+                        .catch(err => res.send({error: err}));
+                    }
+                })
+                .catch(err => res.send({error: err}));
+            }
+        })
+    })
+
 })
 
 app.listen(process.env.PORT || 5000)
