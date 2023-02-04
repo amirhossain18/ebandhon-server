@@ -31,6 +31,9 @@ const imagekit = new ImageKit({
 app.get('/', (req, res) => {
     res.send('everything is ok here after change 3')
 })
+app.get('/new', (req, res) => {
+    res.send('new')
+})
 
 app.get('/auth', function (req, res) {
     var result = imagekit.getAuthenticationParameters();
